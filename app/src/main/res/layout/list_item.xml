@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="12dp" android:layout_marginEnd="12dp"
+    android:layout_marginTop="6dp" android:layout_marginBottom="6dp"
+    app:cardCornerRadius="12dp" app:cardElevation="1dp" app:cardBackgroundColor="?attr/colorSurfaceContainer" android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"> <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp" android:gravity="center_vertical"> <ImageView
+    android:id="@+id/imageViewItemIcon"
+    android:layout_width="24dp" android:layout_height="24dp"
+    android:layout_marginEnd="16dp" app:srcCompat="@drawable/ic_outline_list_alt_24" app:tint="?attr/colorPrimary" android:contentDescription="@string/list_icon_description"/> <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textViewListName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceTitleMedium" android:textColor="?attr/colorOnSurface" android:maxLines="1" android:ellipsize="end" tools:text="Örnek Liste Adı (Çok Uzun Olursa)"
+        android:layout_marginBottom="2dp"/> <TextView
+    android:id="@+id/textViewListDescription"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" android:maxLines="2" android:ellipsize="end" tools:text="Bu liste için girilmiş olan açıklama metni burada yer alır ve eğer çok uzunsa iki satıra sığdırılır." />
+
+</LinearLayout>
+
+</LinearLayout>
+
+</androidx.cardview.widget.CardView>
