@@ -1,11 +1,10 @@
-package com.example.flashcardapp; // Kendi paket adınız
+package com.example.flashcardapp;
 
 public class Card {
-    private String cardId; // Firebase'deki unique ID
-    private String front;  // Kartın ön yüzü
-    private String back;   // Kartın arka yüzü
+    private String cardId;
+    private String front;
+    private String back;
 
-    // Firebase için boş constructor
     public Card() {
     }
 
@@ -14,7 +13,6 @@ public class Card {
         this.back = back;
     }
 
-    // --- Getter'lar ---
     public String getCardId() {
         return cardId;
     }
@@ -27,7 +25,6 @@ public class Card {
         return back;
     }
 
-    // --- Setter'lar ---
     public void setCardId(String cardId) {
         this.cardId = cardId;
     }

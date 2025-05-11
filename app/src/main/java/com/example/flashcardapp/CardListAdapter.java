@@ -72,10 +72,6 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
         return null;
     }
 
-    // Bu metot, Swipe-to-delete'i doğru implemente etmek için
-    // Fragment'tan çağrılıp hem orijinal hem filtrelenmiş listeden silmeli
-    // VEYA sadece görsel silme yapıp liste yenilenmeli.
-    // Şimdilik sadece görsel silme olarak bırakalım.
     public void removeItemVisually(int position) {
         if (position >= 0 && position < cardListsFiltered.size()) {
             cardListsFiltered.remove(position);
@@ -119,20 +115,15 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
         }
     };
 
-    // ============================================ //
-    // === CardListViewHolder SINIFI BURADA OLMALI === //
-    // ============================================ //
     public static class CardListViewHolder extends RecyclerView.ViewHolder {
         TextView textViewListName;
         TextView textViewListDescription;
 
         public CardListViewHolder(@NonNull View itemView) {
             super(itemView);
-            // ID'lerin list_item.xml'deki ile eşleştiğinden emin olun
             textViewListName = itemView.findViewById(R.id.textViewListName);
             textViewListDescription = itemView.findViewById(R.id.textViewListDescription);
         }
     }
-    // ============================================ //
 
-} // Adapter Sonu
+}

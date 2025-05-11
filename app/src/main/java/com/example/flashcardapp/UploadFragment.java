@@ -1,11 +1,9 @@
-package com.example.flashcardapp; // Kendi paket adınız
+package com.example.flashcardapp;
 
 import android.os.Bundle;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,21 +14,14 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import com.google.android.material.textfield.TextInputLayout;
-
-import androidx.annotation.NonNull; // Ekleyelim
-import androidx.annotation.Nullable; // Ekleyelim
-import com.google.android.material.switchmaterial.SwitchMaterial; // Yeni
-import com.google.firebase.database.DataSnapshot; // Yeni
-import com.google.firebase.database.DatabaseError; // Yeni
-import com.google.firebase.database.ValueEventListener; // Yeni
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue; // Zaman damgası için
 
 
 public class UploadFragment extends Fragment {
@@ -38,24 +29,20 @@ public class UploadFragment extends Fragment {
     private static final String TAG = "UploadFragment";
 
     private EditText editTextListName, editTextListDescription;
-    private TextInputLayout tilListName; // Yeni
-    // Açıklama zorunlu olmadığı için TextInputLayout referansı şart değil, ama isterseniz ekleyebilirsiniz.
+    private TextInputLayout tilListName;
     private Button buttonSaveList;
-    private SwitchMaterial switchMakePublic; // Yeni
+    private SwitchMaterial switchMakePublic;
     private ProgressBar progressBar;
-
     private FirebaseAuth mAuth;
-    private DatabaseReference userListsRef; // Kişisel listelerin kaydedileceği yer
-    private DatabaseReference publicListsRef; // Herkese açık listelerin kaydedileceği yer
-    private String currentUserId; // Kullanıcı ID'sini saklamak için
-    private boolean isAdmin = false; // Kullanıcının admin durumu
+    private DatabaseReference userListsRef;
+    private DatabaseReference publicListsRef;
+    private String currentUserId;
+    private boolean isAdmin = false;
 
     private String dbUrl = "https://flashcardapp-2fa06-default-rtdb.europe-west1.firebasedatabase.app/";
 
 
-    public UploadFragment() {
-        // Required empty public constructor
-    }
+    public UploadFragment() {}
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_upload, container, false);
@@ -65,32 +52,29 @@ public class UploadFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // --- View ID'lerini Bulma ---
         editTextListName = view.findViewById(R.id.editTextListNameUpload);
         editTextListDescription = view.findViewById(R.id.editTextListDescriptionUpload);
         tilListName = view.findViewById(R.id.tilListNameUpload);
-        switchMakePublic = view.findViewById(R.id.switchMakePublic); // Yeni
+        switchMakePublic = view.findViewById(R.id.switchMakePublic);
         buttonSaveList = view.findViewById(R.id.buttonSaveList);
         progressBar = view.findViewById(R.id.progressBarUpload);
 
-        // --- Firebase Referansları ve Auth ---
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        publicListsRef = FirebaseDatabase.getInstance(dbUrl).getReference("public_lists"); // Public ref
+        publicListsRef = FirebaseDatabase.getInstance(dbUrl).getReference("public_lists");
 
         if (currentUser != null) {
-            currentUserId = currentUser.getUid(); // ID'yi değişkene al
+            currentUserId = currentUser.getUid();
             userListsRef = FirebaseDatabase.getInstance(dbUrl).getReference("users").child(currentUserId).child("my_lists");
-            checkAdminStatus(currentUserId); // Admin durumunu kontrol et
+            checkAdminStatus(currentUserId);
         } else {
             Log.w(TAG, "Kullanıcı giriş yapmamış, kaydetme devre dışı.");
             buttonSaveList.setEnabled(false);
-            switchMakePublic.setVisibility(View.GONE); // Switch'i de gizle
-            // Toast.makeText(getContext(), "Liste kaydetmek için giriş yapmalısınız.", Toast.LENGTH_LONG).show();
+            switchMakePublic.setVisibility(View.GONE);
         }
 
         buttonSaveList.setOnClickListener(v -> {
-            if (currentUserId != null) { // Kullanıcı ID'si varsa kaydetmeyi dene
+            if (currentUserId != null) {
                 saveNewList();
             } else {
                 Toast.makeText(getContext(), "Liste kaydedilemedi (Kullanıcı bulunamadı).", Toast.LENGTH_SHORT).show();
@@ -98,7 +82,6 @@ public class UploadFragment extends Fragment {
         });
     }
 
-    // Kullanıcının admin olup olmadığını kontrol eden metot
     private void checkAdminStatus(String userId) {
         DatabaseReference adminRef = FirebaseDatabase.getInstance(dbUrl).getReference("admins").child(userId);
         adminRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -115,9 +98,8 @@ public class UploadFragment extends Fragment {
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Admin check failed: ", error.toException());
-                isAdmin = false; // Hata durumunda admin değil varsay
-                switchMakePublic.setVisibility(View.GONE); // Hata durumunda da gizle
+                isAdmin = false;
+                switchMakePublic.setVisibility(View.GONE);
             }
         });
     }
@@ -139,7 +121,6 @@ public class UploadFragment extends Fragment {
 
         if (isPublic) {
             targetRef = publicListsRef; // Hedef: /public_lists
-            Log.d(TAG, "Saving list to PUBLIC path.");
         } else {
             // Admin değilse veya admin ama public istemiyorsa kişisel listeye kaydet
             if (userListsRef == null) { // Güvenlik kontrolü
@@ -147,17 +128,14 @@ public class UploadFragment extends Fragment {
                 return;
             }
             targetRef = userListsRef; // Hedef: /users/$uid/my_lists
-            Log.d(TAG, "Saving list to PRIVATE path.");
         }
 
         progressBar.setVisibility(View.VISIBLE);
         buttonSaveList.setEnabled(false);
-        switchMakePublic.setEnabled(false); // Kayıt sırasında değiştirilemesin
+        switchMakePublic.setEnabled(false);
 
-        // Benzersiz ID oluştur (Hedef referans üzerinden!)
         String newListId = targetRef.push().getKey();
         if (newListId == null) {
-            Log.e(TAG, "Firebase push ID oluşturulamadı.");
             Toast.makeText(getContext(), "Liste kaydedilirken hata oluştu (ID sorunu).", Toast.LENGTH_SHORT).show();
             progressBar.setVisibility(View.GONE);
             buttonSaveList.setEnabled(true);
@@ -167,7 +145,7 @@ public class UploadFragment extends Fragment {
 
         // CardList objesini oluştur ve creator UID'sini ekle
         CardList newCardList = new CardList(listName, listDescription);
-        newCardList.setCreatedByUid(currentUserId); // OLUŞTURANIN UID'SİNİ EKLE!
+        newCardList.setCreatedByUid(currentUserId);
 
         // Veritabanına kaydet
         targetRef.child(newListId).setValue(newCardList)
@@ -180,16 +158,12 @@ public class UploadFragment extends Fragment {
                         Toast.makeText(getContext(), "Liste başarıyla kaydedildi!", Toast.LENGTH_SHORT).show();
                         editTextListName.setText("");
                         editTextListDescription.setText("");
-                        switchMakePublic.setChecked(false); // Switch'i sıfırla
+                        switchMakePublic.setChecked(false);
                         tilListName.setError(null);
                         editTextListName.requestFocus();
                         Log.d(TAG, "Liste kaydedildi. Path: " + targetRef.child(newListId).toString());
 
-                        // İsteğe bağlı: Kullanıcıyı ilgili liste ekranına yönlendir
-                        // if (isPublic) { // Belki HomeFragment'a } else { // Belki CardListFragment'a }
-
                     } else {
-                        // Firebase kuralları nedeniyle hata almış olabiliriz (örn: admin olmayan public yazmaya çalışırsa)
                         Toast.makeText(getContext(), "Liste kaydedilirken hata oluştu: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         Log.e(TAG, "Firebase setValue hatası (" + targetRef.toString() + "): ", task.getException());
                     }

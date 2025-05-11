@@ -1,8 +1,6 @@
-package com.example.flashcardapp; // Kendi paket adınız
+package com.example.flashcardapp;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -13,17 +11,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.material.textfield.TextInputLayout;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
 
     EditText editTextEmail, editTextPassword;
-    TextInputLayout tilEmail, tilPassword; // Yeni
+    TextInputLayout tilEmail, tilPassword;
     Button buttonLogin;
     TextView textViewGoToRegister;
     ProgressBar progressBar;
@@ -36,26 +29,25 @@ public class LoginActivity extends AppCompatActivity {
 
         editTextEmail = findViewById(R.id.editTextLoginEmail);
         editTextPassword = findViewById(R.id.editTextLoginPassword);
-        tilEmail = findViewById(R.id.tilLoginEmail); // Yeni
-        tilPassword = findViewById(R.id.tilLoginPassword); // Yeni
+        tilEmail = findViewById(R.id.tilLoginEmail);
+        tilPassword = findViewById(R.id.tilLoginPassword);
         buttonLogin = findViewById(R.id.buttonLogin);
         textViewGoToRegister = findViewById(R.id.textViewGoToRegister);
         progressBar = findViewById(R.id.progressBarLogin);
         mAuth = FirebaseAuth.getInstance();
 
-        textViewGoToRegister.setOnClickListener(v -> { // Listener aynı
+        textViewGoToRegister.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(intent);
             finish();
         });
 
-        buttonLogin.setOnClickListener(v -> { // Listener aynı
+        buttonLogin.setOnClickListener(v -> {
             loginUser();
         });
     }
 
     private void loginUser() {
-        // Hataları temizle
         tilEmail.setError(null);
         tilPassword.setError(null);
 
@@ -64,13 +56,13 @@ public class LoginActivity extends AppCompatActivity {
 
         // Doğrulamalar ve Hata Gösterme
         if (TextUtils.isEmpty(email)) {
-            tilEmail.setError("E-posta gerekli."); // Yeni
+            tilEmail.setError("E-posta gerekli.");
             editTextEmail.requestFocus();
             return;
         }
 
         if (TextUtils.isEmpty(password)) {
-            tilPassword.setError("Şifre gerekli."); // Yeni
+            tilPassword.setError("Şifre gerekli.");
             editTextPassword.requestFocus();
             return;
         }
@@ -78,7 +70,7 @@ public class LoginActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
 
         mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> { // Lambda
+                .addOnCompleteListener(this, task -> {
                     progressBar.setVisibility(View.GONE);
                     if (task.isSuccessful()) {
                         Toast.makeText(LoginActivity.this, "Giriş başarılı!", Toast.LENGTH_SHORT).show();
@@ -87,15 +79,14 @@ public class LoginActivity extends AppCompatActivity {
                         startActivity(intent);
                         finish();
                     } else {
-                        // Hataları daha anlamlı göster
                         String errorMessage = task.getException() != null ? task.getException().getMessage() : "Bilinmeyen giriş hatası";
                         if (errorMessage.contains("password") || errorMessage.contains("Password")) {
                             tilPassword.setError("Hatalı şifre.");
                             editTextPassword.requestFocus();
-                        } else if (errorMessage.contains("user record") || errorMessage.contains("USER_NOT_FOUND")) {
-                            tilEmail.setError("Bu e-posta ile kayıtlı kullanıcı bulunamadı.");
-                            editTextEmail.requestFocus();
-                        } else if (errorMessage.contains("invalid email")) {
+                        } else if (errorMessage.contains("The supplied auth credential is incorrect, malformed or has expired") || errorMessage.contains("USER_NOT_FOUND")) {
+                            Toast.makeText(LoginActivity.this, "Giriş başarısız. E-posta veya şifre yanlış." , Toast.LENGTH_LONG).show();
+
+                        } else if (errorMessage.contains("The email address is badly formatted")) {
                             tilEmail.setError("Geçersiz e-posta formatı.");
                             editTextEmail.requestFocus();
                         }

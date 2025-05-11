@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,9 +29,7 @@ public class CardFragment extends Fragment {
     private CardView cardViewContainer;
     private TextView textViewCardContent;
 
-    public CardFragment() { } // Boş constructor
-
-    // newInstance metodu ile fragment oluşturma (güvenli argüman geçişi)
+    public CardFragment() { }
     public static CardFragment newInstance(String front, String back) {
         CardFragment fragment = new CardFragment();
         Bundle args = new Bundle();
@@ -64,7 +61,6 @@ public class CardFragment extends Fragment {
         cardViewContainer = view.findViewById(R.id.cardViewFragmentContainer);
         textViewCardContent = view.findViewById(R.id.textViewFragmentCardContent);
 
-        // Başlangıç metnini ayarla
         if (frontText != null) {
             textViewCardContent.setText(frontText);
             isFrontShowing = true; // Her zaman ön yüzle başla
@@ -72,7 +68,6 @@ public class CardFragment extends Fragment {
             textViewCardContent.setText(""); // Veri yoksa boş göster
         }
 
-        // Çevirme animasyonu için tıklama listener'ı
         cardViewContainer.setOnClickListener(v -> {
             if (!isAnimating && frontText != null && backText != null) {
                 flipCardAnimation();
@@ -80,9 +75,9 @@ public class CardFragment extends Fragment {
         });
     }
 
-    // Çevirme animasyonu (ListDetailActivity'den buraya taşındı)
+    // Çevirme animasyonu
     private void flipCardAnimation() {
-        if (getContext() == null) return; // Context kontrolü
+        if (getContext() == null) return;
 
         float scale = getResources().getDisplayMetrics().density;
         cardViewContainer.setCameraDistance(8000 * scale);
@@ -117,16 +112,14 @@ public class CardFragment extends Fragment {
         animator1.start();
     }
 
-    // Fragment görünümden kaybolduğunda animasyon veya durumu sıfırlama (opsiyonel)
     @Override
     public void onPause() {
         super.onPause();
         if (isAnimating && cardViewContainer != null) {
-            cardViewContainer.clearAnimation(); // Varsa animasyonu durdur
-            cardViewContainer.setRotationY(0f); // Rotasyonu sıfırla
+            cardViewContainer.clearAnimation();
+            cardViewContainer.setRotationY(0f);
             isAnimating = false;
         }
-        // Fragment tekrar görünür olduğunda ön yüzün gösterilmesini sağla
         if (!isFrontShowing && frontText != null && textViewCardContent != null) {
             textViewCardContent.setText(frontText);
             isFrontShowing = true;

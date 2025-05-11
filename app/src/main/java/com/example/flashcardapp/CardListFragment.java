@@ -1,9 +1,7 @@
 package com.example.flashcardapp;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Canvas;
-// import android.graphics.Color; // Not directly used now
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -40,14 +38,12 @@ import android.text.TextUtils;
 public class CardListFragment extends Fragment {
 
     private static final String TAG = "CardListFragment";
-
     private RecyclerView recyclerView;
     private CardListAdapter adapter;
     private ProgressBar progressBar;
     private TextView textViewNoLists;
     private TextView textViewNoSearchResults;
     private SearchView searchView;
-
     private FirebaseAuth mAuth;
     private DatabaseReference userListsRef;
     private ValueEventListener valueEventListener;
@@ -70,70 +66,56 @@ public class CardListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // --- View Bulma ---
         recyclerView = view.findViewById(R.id.recyclerViewCardList);
         progressBar = view.findViewById(R.id.progressBarCardList);
         textViewNoLists = view.findViewById(R.id.textViewNoCardLists);
         textViewNoSearchResults = view.findViewById(R.id.textViewNoCardListSearchResults);
         searchView = view.findViewById(R.id.searchViewCardList);
 
-        // --- RecyclerView Kurulumu ---
         if (recyclerView != null) {
             recyclerView.setHasFixedSize(true);
             recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
             adapter = new CardListAdapter(requireContext(), new ArrayList<>());
             recyclerView.setAdapter(adapter);
-            Log.d(TAG, "RecyclerView and Adapter setup completed.");
         } else {
-            Log.e(TAG, "RecyclerView is NULL!"); return;
+            return;
         }
 
-        // --- Tema Renkleri ve Swipe Kurulumu ---
+        // Tema Renkleri ve Swipe Kurulumu
         loadThemeColorsAndIcon();
         ItemTouchHelper.SimpleCallback simpleCallback = createItemTouchHelperCallback();
         itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
-        // --- SearchView Kurulumu ---
         if (searchView != null) {
-            Log.d(TAG, "Calling setupSearchView...");
             setupSearchView();
-        } else {
-            Log.e(TAG, "SearchView is NULL!");
         }
 
-        // --- Firebase ve Auth Kurulumu ---
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
             userListsRef = FirebaseDatabase.getInstance(dbUrl).getReference("users").child(userId).child("my_lists");
-            Log.d(TAG, "Fetching lists from: " + userListsRef.toString());
             loadUserLists();
         } else {
             handleUserNotLoggedIn();
         }
 
-        // adapter.setOnItemClickListener(...); // <<--- BU BLOK SİLİNDİ ---<<
     }
 
+    // Arama işlemi için metot
     private void setupSearchView() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if (adapter != null) { adapter.getFilter().filter(query); }
                 searchView.clearFocus();
-                checkSearchResultsVisibility(query); // Mesaj görünürlüğünü ayarla
+                checkSearchResultsVisibility(query);
                 return true;
             }
             @Override
             public boolean onQueryTextChange(String newText) {
                 if (adapter != null) { adapter.getFilter().filter(newText); }
-                // Not: Filtreleme asenkron çalışır, sonuçlar hemen güncellenmez.
-                // Anlık kontrol yerine sonuçlar publishResults'ta güncellenince
-                // kontrol etmek daha doğru olur, ancak şimdilik basit tutuyoruz.
-                // Gecikme eklemek veya adapter'dan callback almak gerekir.
-                // Şimdilik direkt çağırıyoruz ama küçük listelerde sorun olmaz.
                 checkSearchResultsVisibility(newText);
                 return true;
             }
@@ -141,26 +123,21 @@ public class CardListFragment extends Fragment {
 
         searchView.setOnCloseListener(() -> {
             if (adapter != null) { adapter.getFilter().filter(""); }
-            checkSearchResultsVisibility(""); // Filtre temizlenince mesajı güncelle
+            checkSearchResultsVisibility("");
             return false;
         });
     }
 
-    // Arama sonuçlarına göre SADECE "Sonuç Yok" mesajını yönetir
-    // Diğer view'ların görünürlüğü loadUserLists/onDataChange tarafından yönetilir.
+    // Arama sonuçlarına göre mesajları güncelleyen yardımcı metot
     private void checkSearchResultsVisibility(String query) {
         if (adapter == null || textViewNoSearchResults == null) return;
 
         boolean hasQuery = !TextUtils.isEmpty(query);
-        // ÖNEMLİ: getItemCount() filtrelemenin BİTMESİNİ beklemez.
-        // Doğru sonuç için filtreleme sonrası kontrol gerekir (publishResults'tan sonra).
-        // Basit yaklaşım: Eğer sorgu varsa ve adaptör *o an* boşsa mesajı göster.
+
         boolean hasResults = adapter.getItemCount() > 0;
 
         textViewNoSearchResults.setVisibility(hasQuery && !hasResults ? View.VISIBLE : View.GONE);
 
-        // RecyclerView'ın görünürlüğünü burada tekrar ayarlamak yerine
-        // onDataChange'in ayarlamasına güvenelim. Sadece arama sonucu yoksa gizleyebiliriz.
         if (recyclerView != null) {
             recyclerView.setVisibility(hasQuery && !hasResults ? View.GONE : View.VISIBLE);
         }
@@ -170,10 +147,8 @@ public class CardListFragment extends Fragment {
     private void loadThemeColorsAndIcon() {
         Context context = getContext();
         if (context == null) {
-            Log.e(TAG, "loadThemeColorsAndIcon: Context is null!");
-            // Varsayılan renkler ayarlanabilir veya çıkılabilir
-            swipeBackgroundColor = Color.LTGRAY; // Fallback
-            swipeIconColor = Color.DKGRAY;     // Fallback
+            swipeBackgroundColor = Color.LTGRAY;
+            swipeIconColor = Color.DKGRAY;
             deleteIcon = null;
             return;
         }
@@ -206,6 +181,7 @@ public class CardListFragment extends Fragment {
         }
     }
 
+    // Swipe işlemi için metot
     private ItemTouchHelper.SimpleCallback createItemTouchHelperCallback() {
         return new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
@@ -256,7 +232,6 @@ public class CardListFragment extends Fragment {
                 background.draw(c);
                 if (iconLeft != iconRight) {
                     deleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-                    // Tint loadThemeColorsAndIcon içinde ayarlandı
                     deleteIcon.draw(c);
                 }
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
@@ -268,7 +243,6 @@ public class CardListFragment extends Fragment {
         if (getContext() == null) return;
         new AlertDialog.Builder(getContext())
                 .setTitle("Listeyi Sil")
-                // ... (Dialog içeriği aynı) ...
                 .setMessage("'" + listToDelete.getListName() + "' listesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve listedeki tüm kartlar da silinir.")
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setPositiveButton("Evet, Sil", (dialog, whichButton) -> deleteListFromFirebase(listToDelete, position))
@@ -278,18 +252,17 @@ public class CardListFragment extends Fragment {
     }
 
     private void deleteListFromFirebase(CardList listToDelete, int position) {
-        // ... (Metot içeriği aynı) ...
+
         String listId = listToDelete.getListId();
         if (getContext() == null) return;
         if (listId == null || userListsRef == null) {
             Toast.makeText(getContext(), "Liste silinemedi (ID veya referans hatası).", Toast.LENGTH_SHORT).show();
-            if(adapter != null) adapter.notifyItemChanged(position); // Adapter null kontrolü
+            if(adapter != null) adapter.notifyItemChanged(position);
             return;
         }
         userListsRef.child(listId).removeValue()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Log.d(TAG, "Liste başarıyla silindi (my_lists): " + listId);
                         Toast.makeText(getContext(), "'" + listToDelete.getListName() + "' listesi silindi.", Toast.LENGTH_SHORT).show();
                         DatabaseReference cardsToDeleteRef = FirebaseDatabase.getInstance(dbUrl).getReference("cards").child(listId);
                         cardsToDeleteRef.removeValue().addOnCompleteListener(cardsTask -> {
@@ -304,7 +277,7 @@ public class CardListFragment extends Fragment {
                 });
     }
 
-
+    // Firebase'den listeleri yükle
     private void loadUserLists() {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
         if (textViewNoLists != null) textViewNoLists.setVisibility(View.GONE);
@@ -313,7 +286,6 @@ public class CardListFragment extends Fragment {
         if (searchView != null) searchView.setVisibility(View.GONE);
 
         if (valueEventListener == null) {
-            Log.d(TAG, "Creating and attaching ValueEventListener for User Lists.");
             valueEventListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -326,13 +298,11 @@ public class CardListFragment extends Fragment {
                             } catch (Exception e) { Log.e(TAG, "User list parse error: " + snapshot.getKey(), e); }
                         }
                     }
-                    Log.d(TAG, "CardListFragment onDataChange: Fetched " + loadedLists.size() + " lists.");
 
                     if (adapter == null) { Log.e(TAG, "CardListFragment onDataChange: Adapter is NULL!"); if(progressBar != null) progressBar.setVisibility(View.GONE); return; }
 
                     // Adaptöre veriyi ver
                     adapter.setOriginalData(loadedLists);
-                    Log.d(TAG, "CardListFragment onDataChange: Adapter data set. Item count: " + adapter.getItemCount());
 
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
 
@@ -341,7 +311,7 @@ public class CardListFragment extends Fragment {
                     if (textViewNoLists != null) textViewNoLists.setVisibility(listsAreEmpty ? View.VISIBLE : View.GONE);
                     if (recyclerView != null) recyclerView.setVisibility(listsAreEmpty ? View.GONE : View.VISIBLE);
                     if (searchView != null) searchView.setVisibility(listsAreEmpty ? View.GONE : View.VISIBLE);
-                    if (textViewNoSearchResults != null) textViewNoSearchResults.setVisibility(View.GONE); // Arama yok mesajı başlangıçta gizli
+                    if (textViewNoSearchResults != null) textViewNoSearchResults.setVisibility(View.GONE);
                 }
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
@@ -355,15 +325,12 @@ public class CardListFragment extends Fragment {
                 }
             };
             if (userListsRef != null) {
-                Log.d(TAG, "Attaching listener to userListsRef: " + userListsRef.toString());
                 userListsRef.addValueEventListener(valueEventListener);
-            } else { /* ... userListsRef null hatası ... */ }
-        } else { Log.w(TAG, "User list ValueEventListener already exists."); }
+            }
+        }
     }
 
     private void handleUserNotLoggedIn() {
-        // ... (Kod aynı) ...
-        Log.w(TAG, "User not logged in, cannot load lists.");
         if(progressBar != null) progressBar.setVisibility(View.GONE);
         if(textViewNoLists != null) { textViewNoLists.setText("Listelerinizi görmek için giriş yapmalısınız."); textViewNoLists.setVisibility(View.VISIBLE); }
         if(textViewNoSearchResults != null) textViewNoSearchResults.setVisibility(View.GONE);
@@ -374,9 +341,7 @@ public class CardListFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        // ... (Kod aynı) ...
         super.onDestroyView();
-        Log.d(TAG, "onDestroyView called.");
         if (userListsRef != null && valueEventListener != null) {
             userListsRef.removeEventListener(valueEventListener); valueEventListener = null; Log.d(TAG, "ValueEventListener removed.");
         }
