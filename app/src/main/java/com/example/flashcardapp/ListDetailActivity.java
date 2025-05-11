@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import android.content.SharedPreferences;
 
 
 public class ListDetailActivity extends AppCompatActivity {
@@ -65,6 +66,9 @@ public class ListDetailActivity extends AppCompatActivity {
     private int permissionChecksCompleted = 0;
     private final int TOTAL_PERMISSION_CHECKS = 2;
     private boolean cardsLoaded = false;
+    private SharedPreferences sharedPreferences;
+    private static final String PREF_NAME = "FlashcardAppPrefs";
+    private static final String KEY_SHUFFLE_CARDS = "shuffle_cards_on_start";
 
 
 
@@ -80,6 +84,8 @@ public class ListDetailActivity extends AppCompatActivity {
         buttonEditCard = findViewById(R.id.buttonEditCard);
         buttonDeleteCard = findViewById(R.id.buttonDeleteCard);
         viewPagerCards = findViewById(R.id.viewPagerCards);
+
+        sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
 
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -219,8 +225,18 @@ public class ListDetailActivity extends AppCompatActivity {
                         } catch (Exception e) { Log.e(TAG, "Kart parse hatası: " + snapshot.getKey(), e); }
                     }
                     Log.d(TAG, "Toplam " + loadedCards.size() + " kart yüklendi.");
-                    Collections.shuffle(loadedCards);
-                    Log.d(TAG, "Kart listesi karıştırıldı.");
+
+                    boolean shouldShuffle = false;
+                    if (sharedPreferences != null) {
+                        shouldShuffle = sharedPreferences.getBoolean(KEY_SHUFFLE_CARDS, true);
+                    }
+
+                    if (shouldShuffle && !loadedCards.isEmpty()) {
+                        Collections.shuffle(loadedCards);
+                        Log.d(TAG, "Kart listesi tercihe göre karıştırıldı.");
+                    }else if (!loadedCards.isEmpty()) {
+                        Log.d(TAG, "Kart listesi karıştırılmadı (kullanıcı tercihi veya liste boş).");
+                    }
                 } else { Log.w(TAG, "Bu liste için kart bulunamadı: " + listId); }
 
                 progressBar.setVisibility(View.GONE);

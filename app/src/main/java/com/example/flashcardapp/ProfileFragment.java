@@ -1,5 +1,6 @@
 package com.example.flashcardapp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -23,6 +24,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+import android.content.SharedPreferences;
 
 public class ProfileFragment extends Fragment {
 
@@ -34,6 +37,11 @@ public class ProfileFragment extends Fragment {
     private ProgressBar progressBar;
     private FirebaseAuth mAuth;
     private DatabaseReference userProfileRef;
+
+    private SwitchMaterial switchShuffleCards;
+    private SharedPreferences sharedPreferences;
+    private static final String PREF_NAME = "FlashcardAppPrefs";
+    private static final String KEY_SHUFFLE_CARDS = "shuffle_cards_on_start";
 
     private String dbUrl = "https://flashcardapp-2fa06-default-rtdb.europe-west1.firebasedatabase.app/";
 
@@ -55,7 +63,19 @@ public class ProfileFragment extends Fragment {
         buttonLogout = view.findViewById(R.id.buttonLogout);
         buttonSaveProfile = view.findViewById(R.id.buttonSaveProfile);
         progressBar = view.findViewById(R.id.progressBarProfile);
+        switchShuffleCards = view.findViewById(R.id.switchShuffleCards);
         mAuth = FirebaseAuth.getInstance();
+
+        sharedPreferences = requireActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+
+        boolean shuffleEnabled = sharedPreferences.getBoolean(KEY_SHUFFLE_CARDS, true);
+        switchShuffleCards.setChecked(shuffleEnabled);
+
+        switchShuffleCards.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(KEY_SHUFFLE_CARDS, isChecked);
+            editor.apply();
+        });
 
         loadUserProfile();
         buttonLogout.setOnClickListener(v -> {
